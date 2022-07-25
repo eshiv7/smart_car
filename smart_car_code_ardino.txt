@@ -1,0 +1,278 @@
+
+#include <Servo.h>
+#include<math.h>
+
+Servo myservo;  // create servo object to control a servo
+  
+#define echoPin 10 // attach pin D2 Arduino to pin Echo of HC-SR04
+#define trigPin 11 //attach pin D3 Arduino to pin Trig of HC-SR04
+#define ldrPin1 A0
+#define ldrPin2 A1
+#define temp A2
+#define buzz 8;
+
+
+
+char command;
+
+void setup() {
+  Serial.begin(9600);  //Set the baud rate to your Bluetooth module.
+  myservo.attach(9);
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
+  pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
+  //Serial.begin(9600);
+  pinMode(ldrPin1, INPUT);
+  pinMode(ldrPin2, INPUT);
+  pinMode(temp, INPUT);
+
+  pinMode(2,OUTPUT);
+   pinMode(3,OUTPUT);
+   pinMode(4,OUTPUT);
+   pinMode(5,OUTPUT);
+   pinMode(6,OUTPUT);
+   pinMode(7,OUTPUT);     
+   pinMode(8,OUTPUT);
+  
+                     
+}
+
+void loop() {
+
+ // command="-1";
+
+
+  digitalWrite(6,HIGH);
+   digitalWrite(7,HIGH);
+ if (Serial.available() > 0) {
+   command = Serial.read();
+   Stop();  //initialize with motors stoped
+   
+    Serial.println(command);
+    switch (command) {
+      case 'F':
+        forward();
+        break;
+      case 'B':
+        back();
+        break;
+      case 'L':
+        left();
+        break;
+      case 'R':
+        right();
+        break;
+
+      case 'I':
+        inten();
+        break;
+      
+      case 'T':
+        tem();
+        break;
+
+      case 'Z':
+        buz();
+        break;
+        
+        case 'f':
+        forwardcheck();
+        break;
+
+        case 't':
+        turn();
+        break;
+              
+   }
+
+  
+  
+   }
+
+  
+
+
+  
+  }
+
+
+void forwardcheck() {
+
+
+  myservo.write(90);
+  delay(10);
+  objt();
+  }
+void forward() {
+  digitalWrite(2,HIGH);
+   digitalWrite(5,HIGH);
+       digitalWrite(3,LOW);
+   digitalWrite(4,LOW);
+   delay(1000);
+ 
+  }
+
+  void back() {
+    digitalWrite(3,HIGH);
+   digitalWrite(4,HIGH);
+   digitalWrite(2,LOW);
+   digitalWrite(5,LOW);
+   delay(1000);
+   
+   
+  }
+
+  void left() {
+    digitalWrite(2,HIGH);
+     digitalWrite(4,HIGH);
+
+  digitalWrite(3,LOW);
+     digitalWrite(5,LOW);
+     delay(500);
+
+  }
+
+  void right() {
+    digitalWrite(5,HIGH);
+   digitalWrite(3,HIGH);
+
+     digitalWrite(2,0);
+     digitalWrite(4,0);
+
+    delay(500);
+
+  }
+
+  void Stop() {
+   digitalWrite(2,0);
+   digitalWrite(5,0);
+     digitalWrite(3,0);
+   digitalWrite(4,0);
+
+  }
+ void objt()
+{
+  
+// Clears the trigPin condition
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
+  digitalWrite(trigPin, HIGH);
+  delay(50);
+  digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  double duration = pulseIn(echoPin, HIGH);
+  // Calculating the distance
+  double distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+  // Displays the distance on the Serial Monitor
+  if(distance<60)
+  {
+    Serial.print("obstacle at(cm) :");
+    Serial.println(distance);
+  }else
+  {
+   Serial.println("no obstacle in 60cm range"); 
+  }
+  // Serial.print("Distance: ");
+  // Serial.print(distance);
+  // Serial.println(" cm");
+}  
+void turn()
+{
+ myservo.attach(9);  
+  bool b=0;
+  for(int pos=0;pos<=45;pos++)
+  {
+    myservo.write(pos);
+    delay(50);
+
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delay(50);
+  digitalWrite(trigPin, LOW);
+  double duration = pulseIn(echoPin, HIGH);
+  double distance = duration * 0.034 / 2; 
+  if(distance<20)
+  {
+    Serial.print("do not turn, obstacle at(degree),distance(cm): ");
+    Serial.print(pos);
+    Serial.print("  ");
+     Serial.println(distance);
+    b=1;
+
+    break;
+  }
+    
+  }
+int pos;  
+for( pos=135;pos<=180;pos++)
+  {
+    if(b==1)
+    {
+      break;
+    }
+    myservo.write(pos);
+    delay(50);
+
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delay(50);
+  digitalWrite(trigPin, LOW);
+  double duration = pulseIn(echoPin, HIGH);
+  double distance = duration * 0.034 / 2; 
+  if(distance<20)
+  {
+    Serial.print("do not turn, obstacle at(degree),distance(cm): ");
+    Serial.print(pos);
+    Serial.print("  ");
+     Serial.println(distance);
+    break;
+  }
+
+
+  }
+  if(pos==181)
+  {
+    Serial.println("you can turn");
+  }
+  myservo.write(90);
+    
+}
+
+void inten()
+{
+    int ldrStatus1 = analogRead(ldrPin1);
+  Serial.print("front intensity(0-255) : ");
+  Serial.println(ldrStatus1);
+  delay(50);
+  int ldrStatus2 = analogRead(ldrPin2);
+  Serial.print("side intensity(0-255) : ");
+  Serial.println(ldrStatus2);
+}
+
+void tem()
+{
+  float A=1.009249522e-03,B=2.378405444e-04,C=2.019202697e-07;
+float T,logRt,Tf,Tc;
+logRt= log(10000.0*((1024.0/A2 - 1)));
+T=(1.0/(A + B*logRt +C*logRt*logRt*logRt  ));
+Tc=T-273.15;
+Serial.print("Temperature(in celcius): ");
+Serial.println(Tc);
+  
+
+}
+
+void buz()
+{
+  digitalWrite(8, HIGH);
+
+  delay(500);
+  digitalWrite(8, 0);
+
+}
+
+  
+
+  
